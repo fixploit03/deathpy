@@ -5,7 +5,25 @@
 # GitHub: https://github.com/fixploit03/deauther
 # Copyright (c) 2025 - Rofi (Fixploit03)
 #--------------------------------------------------------------------------------------------------------------------------
-# DISCLAIMER: [Sama seperti asli, tidak diubah]
+# DISCLAIMER:
+#
+# This program is created solely for educational and learning purposes about wireless network security (Wi-Fi).
+# Usage of this program should only be conducted on networks or devices that you own or have explicit permission
+# from the owner to test their security. Using this program for illegal purposes, such as disrupting, infiltrating,
+# or damaging networks without permission, is unlawful in many jurisdictions and may result in serious legal consequences,
+# including fines or imprisonment.
+#
+# The creator (Rofi/Fixploit03) is not responsible for any misuse or damage caused by the use of this program.
+# You, as the user, are fully responsible for your own actions and must comply with the laws and regulations applicable
+# in your region.
+#
+# This program is designed to help understand how deauthentication attacks work in a controlled and legal environment,
+# such as a cybersecurity lab or authorized penetration testing. We strongly recommend that you study hacking ethics
+# and relevant laws BEFORE using this program. Do not use this program for malicious purposes or without proper authorization
+# from the relevant parties.
+#
+# By using this program, you acknowledge that you understand the risks, responsibilities, and legal limitations,
+# and agree to use it only in a lawful and ethical context for educational or authorized security testing purposes.
 #--------------------------------------------------------------------------------------------------------------------------
 
 import sys          # For system operations like exiting and platform checking
@@ -14,7 +32,7 @@ import re           # For validating MAC address format with regex
 import os           # For interacting with the operating system (e.g., checking interfaces)
 import signal       # For handling signals like CTRL+C
 import argparse     # For parsing command-line arguments
-import platform     # For detailed operating system checking (NEW)
+import platform     # For detailed operating system checking
 from scapy.all import *  # For network packet manipulation and sending
 from termcolor import colored  # For colored terminal output
 
@@ -169,6 +187,7 @@ def scan_clients(interface, bssid, channel, timeout=30):
         sys.exit(1)
     
     def packet_handler(pkt):
+        """Callback function to process each captured packet"""
         if pkt.haslayer(Dot11) and pkt.addr2 == bssid and pkt.addr1 != "ff:ff:ff:ff:ff:ff":
             client_mac = pkt.addr1
             if client_mac not in clients:
@@ -287,7 +306,7 @@ def main():
     os_name = platform.system()  # Mengembalikan 'Linux', 'Windows', 'Darwin', dll.
     if os_name != "Linux":
         time_str = colored(get_current_time(), 'cyan')
-        print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("ERROR", 'red', attrs=['bold']) + colored("] ", 'white') + colored(f"This program is only supported on Linux!", 'white'))
+        print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("ERROR", 'red', attrs=['bold']) + colored("] ", 'white') + colored(f"This program is only supported on Linux! Detected OS: {os_name}", 'white'))
         sys.exit(1)
 
     signal.signal(signal.SIGINT, signal_handler)
