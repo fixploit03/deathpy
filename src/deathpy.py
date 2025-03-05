@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 #
 #--------------------------------------------------------------------------------------------------------------------------
-# Author: Rofi (Fixploit03), Modified by Grok to use platform module and enhanced by xAI
-# GitHub: https://github.com/fixploit03/deauther
+# Author: Rofi (Fixploit03)
+# GitHub: https://github.com/fixploit03/deathpy
 # Copyright (c) 2025 - Rofi (Fixploit03)
 #--------------------------------------------------------------------------------------------------------------------------
 # DISCLAIMER:
