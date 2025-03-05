@@ -1,0 +1,14 @@
+HOW TO INSTALL:
+----------------------
+
+sudo apt-get update
+sudo apt-get install python3 python3-pip python3-venv git
+git clone https://github.com/fixploit03/deathpy.git
+cd deathpy
+python3 -m venv .modules
+source .modules/bin/activate
+pip3 install requirements.txt
+
+RUN:
+----------------------
+sudo python3 --help
