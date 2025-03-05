@@ -12,6 +12,6 @@ pip3 install -r requirements.txt
 RUN:
 ----------------------
 cd src
-sudo python3 --help
+sudo python3 deathpy.py --help
 
 - ^_^ -
