@@ -19,6 +19,8 @@
 - Library `scapy` dan `termcolor`
 - Kopi (Biar ga ngantuk ^_^)
 
+> ✍🏼 **Catatan**: Jangan lupa untuk menginstal driver Wi-Fi adapternya. Panduan instalasinya banyak di YouTube.
+
 ## Instalasi 🔧
 
 Panduan untuk menginstal DeathPy ada [disini](https://github.com/fixploit03/deathpy/blob/main/INSTALL).
