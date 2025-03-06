@@ -60,4 +60,4 @@ sudo python3 deathpy.py wlan0 -b 00:11:22:33:44:55 -c 6 -a 66:77:88:99:AA:BB
 
 ## Lisensi 📜
 
-Program ini dilisensikan di bawah [Lisensi MIT]().
+Program ini dilisensikan di bawah [Lisensi MIT](https://github.com/fixploit03/deathpy/blob/main/LICENSE).
