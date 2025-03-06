@@ -21,7 +21,7 @@
 
 ## Instalasi 🔧
 
-Panduan untuk menginstal DeathPy ada disini [here]()
+Panduan untuk menginstal DeathPy ada [disini](https://github.com/fixploit03/deathpy/blob/main/INSTALL).
 
 ## Penggunaan 👨‍💻
 
