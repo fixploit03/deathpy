@@ -25,7 +25,7 @@ Panduan untuk menginstal DeathPy ada [disini](https://github.com/fixploit03/deat
 
 ## Penggunaan 👨‍💻
 
-> Pastikan berada didalam folder `src` untuk menjalankan program nya.
+> Pastikan berada didalam folder `src` untuk menjalankan programnya.
 
 ```
 sudo python3 deathpy.py <interface> -b <bssid> -c <channel> [-a <client>] [-n <count>] [-t <timeout>] [-i <interval>] [-v]
