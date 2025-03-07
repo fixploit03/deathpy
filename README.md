@@ -6,6 +6,8 @@
 ![](https://img.shields.io/github/stars/fixploit03/deathpy?style=flat)
 ![](https://img.shields.io/github/forks/fixploit03/deathpy?style=flat)
 
+![](https://github.com/fixploit03/deathpy/blob/main/img/deathpy.png)
+
 ![](https://github.com/fixploit03/deathpy/blob/main/img/ilustrasi%20serangan%20deauth.jpg)
 
 `DeathPy` adalah program berbasis Python yang dirancang untuk tujuan pendidikan guna menunjukkan cara kerja serangan deautentikasi pada jaringan nirkabel (Wi-Fi). Program ini dibuat untuk digunakan dalam lingkungan yang terkontrol, seperti laboratorium keamanan siber atau pengujian penetrasi yang sah. Anda hanya boleh menggunakannya pada jaringan atau perangkat yang Anda miliki atau telah mendapatkan izin eksplisit dari pemiliknya untuk menguji keamanannya.
