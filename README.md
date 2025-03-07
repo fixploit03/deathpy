@@ -23,9 +23,9 @@
 
 ## Ilustrasi
 
-Berikut ini adalah ilustrasi yang menunjukkan seorang penyerang (Attacker) mengirimkan Frame Deauthentication ke Access Point (AP), yang berfungsi sebagai perangkat untuk mendistribusikan koneksi internet. Dalam ilustrasi ini, AP menerima Frame Deauthentication, sehingga kemampuannya untuk menyebarkan koneksi internet terganggu dan tidak dapat berfungsi dengan normal. Akibatnya, perangkat seperti kamera CCTV, smartphone, dan kedua laptop kehilangan akses ke internet, sebagaimana ditandai dengan simbol "Disconnect" pada ilustrasi, yang menunjukkan dampak langsung dari serangan deautentikasi yang dilakukan oleh penyerang.
-
 ![](https://github.com/fixploit03/deathpy/blob/main/img/ilustrasi%20serangan%20deauth.jpg)
+
+Berikut ini adalah ilustrasi yang menunjukkan seorang penyerang (Attacker) mengirimkan Frame Deauthentication ke Access Point (AP), yang berfungsi sebagai perangkat untuk mendistribusikan koneksi internet. Dalam ilustrasi ini, AP menerima Frame Deauthentication, sehingga kemampuannya untuk menyebarkan koneksi internet terganggu dan tidak dapat berfungsi dengan normal. Akibatnya, perangkat seperti kamera CCTV, smartphone, dan kedua laptop kehilangan akses ke internet, sebagaimana ditandai dengan simbol "Disconnect" pada ilustrasi, yang menunjukkan dampak langsung dari serangan deautentikasi yang dilakukan oleh penyerang.
 
 ## Persyaratan 📦
 
