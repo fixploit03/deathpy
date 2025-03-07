@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #
 #--------------------------------------------------------------------------------------------------------------------------
 # Author: Rofi (Fixploit03)
@@ -27,14 +27,14 @@
 #--------------------------------------------------------------------------------------------------------------------------
 
 # --- Import Section: Modules required for the program ---
-import sys          # System operations like exiting and platform checking
-import time         # Timing and delay operations
-import re           # Regular expressions for validating MAC address format
-import os           # Operating system interactions
-import signal       # Signal handling (e.g., CTRL+C)
-import argparse     # Command-line argument parsing
-import platform     # Detailed operating system information
-from scapy.all import *  # Network packet manipulation and sending
+import sys                     # System operations like exiting and platform checking
+import time                    # Timing and delay operations
+import re                      # Regular expressions for validating MAC address format
+import os                      # Operating system interactions
+import signal                  # Signal handling (e.g., CTRL+C)
+import argparse                # Command-line argument parsing
+import platform                # Detailed operating system information
+from scapy.all import *        # Network packet manipulation and sending
 from termcolor import colored  # Colored terminal output
 
 # --- Global Variables ---
