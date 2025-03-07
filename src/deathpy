@@ -2,7 +2,7 @@
 #
 #--------------------------------------------------------------------------------------------------------------------------
 # Author: Rofi (Fixploit03)
-# GitHub: https://github.com/fixploit03/deauther
+# GitHub: https://github.com/fixploit03/deathpy
 # Copyright (c) 2025 - Rofi (Fixploit03)
 #--------------------------------------------------------------------------------------------------------------------------
 # DISCLAIMER:
@@ -58,7 +58,7 @@ def display_intro():
     program_info = (
         "WiFi Deauthentication Attack Program\n"
         "Author: Rofi (Fixploit03)\n"
-        "GitHub: https://github.com/fixploit03/deauther\n"
+        "GitHub: https://github.com/fixploit03/deathpy\n"
         "Copyright (c) 2025 Rofi (Fixploit03). All rights reserved."
     )
     print(colored(program_info, 'white'))
