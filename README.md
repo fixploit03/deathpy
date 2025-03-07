@@ -57,15 +57,15 @@ Berikut adalah tabel yang menjelaskan 10 kode alasan (reason codes) paling umum 
 | **Kode Alasan** | **Deskripsi** | **Penjelasan Detail** |
 |:--:|:--:|:--:|
 | 1 | Unspecified reason | Pemutusan koneksi tanpa alasan spesifik. Kode ini bersifat generik dan sering digunakan karena tidak menarik perhatian sebagai serangan, sehingga cocok untuk menyamarkan aktivitas sebagai gangguan biasa. |
-| 2 | Previous authentication no longer valid	| Menunjukkan bahwa sesi autentikasi client telah kedaluwarsa, memaksa client untuk melakukan autentikasi ulang. Berguna untuk mengganggu koneksi yang sudah stabil dan memicu respons dari client. |
-| 3 | Deauthenticated because sending STA is leaving IBSS or ESS | Meniru situasi di mana client tampak meninggalkan jaringan ad-hoc (IBSS) atau infrastruktur (ESS). Kode ini efektif untuk membuat pemutusan terlihat alami, seolah-olah client sengaja keluar dari jaringan. |
+| 2 | Previous authentication no longer valid | Menunjukkan bahwa sesi autentikasi client telah kedaluwarsa, memaksa client untuk melakukan autentikasi ulang. Berguna untuk mengganggu koneksi yang sudah stabil dan memicu respons dari client. |
+| 3 | Deauthenticated because sending STA is leaving | Meniru situasi di mana client tampak meninggalkan jaringan ad-hoc (IBSS) atau infrastruktur (ESS). Kode ini efektif untuk membuat pemutusan terlihat alami, seolah-olah client sengaja keluar dari jaringan. |
 | 4 | Disassociated due to inactivity | Memutuskan koneksi client karena dianggap tidak aktif terlalu lama. Kode ini sering digunakan oleh Access Point (AP) untuk mengelola sumber daya, sehingga serangan dengan kode ini bisa disamarkan sebagai tindakan rutin Access Point (AP). |
-| 5 | Disassociated because AP is unable to handle all currently associated STAs | Menunjukkan bahwa Access Point (AP) kelebihan beban dan tidak bisa mendukung semua client yang terhubung. Kode ini berguna untuk menyerang jaringan sibuk dan memaksa pemutusan client secara massal. |
-| 7 | Class 3 frame received from nonassociated STA | Menolak data dari client yang belum diasosiasikan dengan benar. Kode ini adalah default dalam banyak alat karena sifatnya yang teknis dan kemampuannya memutuskan koneksi dengan pasti. |
+| 5 | Disassociated because AP is unable to handle all associated STAs | Menunjukkan bahwa Access Point (AP) kelebihan beban dan tidak bisa mendukung semua client yang terhubung. Kode ini berguna untuk menyerang jaringan sibuk dan memaksa pemutusan client secara massal. |
+| 7 | Class 3 frame received from nonassociated station | Menolak data dari client yang belum diasosiasikan dengan benar. Kode ini adalah default dalam banyak alat karena sifatnya yang teknis dan kemampuannya memutuskan koneksi dengan pasti. |
 | 8 | Disassociated because sending STA is leaving BSS | Menunjukkan client meninggalkan Basic Service Set (BSS), misalnya karena berpindah lokasi. Kode ini cocok untuk menyamarkan serangan sebagai pemutusan akibat pergerakan perangkat. |
-| 9 | STA requesting (re)association is not authenticated	| Memaksa client untuk autentikasi ulang dengan menyatakan bahwa status autentikasinya tidak valid. Berguna untuk mengganggu koneksi yang sedang berlangsung dan memicu respons dari client. |
-| 14 | Message integrity code (MIC) failure	| Menunjukkan adanya pelanggaran keamanan dalam komunikasi. Kode ini bisa memicu respons khusus dari jaringan yang aman dan sering digunakan untuk menguji mekanisme keamanan jaringan. |
-| 15 | 4-Way Handshake timeout | client gagal menyelesaikan proses 4-way handshake dalam autentikasi WPA/WPA2. Ini memaksa perangkat klien untuk melakukan autentikasi ulang, sehingga memungkinkan serangan handshake capture untuk cracking password Wi-Fi. |
+| 9 | STA requesting association is not authenticated | Memaksa client untuk autentikasi ulang dengan menyatakan bahwa status autentikasinya tidak valid. Berguna untuk mengganggu koneksi yang sedang berlangsung dan memicu respons dari client. |
+| 14 | MIC failure (Message Integrity Check) | Menunjukkan adanya pelanggaran keamanan dalam komunikasi. Kode ini bisa memicu respons khusus dari jaringan yang aman dan sering digunakan untuk menguji mekanisme keamanan jaringan. |
+| 15 | 4-way handshake timeout | client gagal menyelesaikan proses 4-way handshake dalam autentikasi WPA/WPA2. Ini memaksa perangkat klien untuk melakukan autentikasi ulang, sehingga memungkinkan serangan handshake capture untuk cracking password Wi-Fi. |
 
 ## Contoh ✨
 
