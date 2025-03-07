@@ -7,11 +7,5 @@ git clone https://github.com/fixploit03/deathpy.git
 cd deathpy
 python3 -m venv .modules
 source .modules/bin/activate
-pip3 install -r requirements.txt
-
-RUN:
-----------------------
-cd src
-sudo python3 deathpy.py --help
-
-- ^_^ -
+chmod +x src/deathpy
+pip3 install .
