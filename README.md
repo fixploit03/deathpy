@@ -45,7 +45,22 @@ sudo python3 deathpy.py <interface> -b <bssid> -c <channel> [-a <client>] [-n <c
 | -n, --count | Jumlah paket yang akan dikirim per client. Gunakan 0 untuk mode terus-menerus (default: 0). | Opsional |
 | -t, --timeout | Waktu tunggu pemindaian client dalam detik (default: 30). | Opsional |
 | -i, --interval | Interval antara pengiriman paket dalam detik (default: 0). | Opsional |
+| -r, --reason | kode alasan (reason codes) yang digunakan dalam serangan deauthentication. | Opsional |
 | -v, --verbose | Aktifkan output lebih rinci. | Opsional |
+
+
+## Reason Codes untuk Serangan Deauthentication
+
+Berikut adalah tabel yang menjelaskan kode alasan (reason codes) yang digunakan dalam serangan deauthentication. Kode-kode ini memberikan konteks tentang mengapa koneksi klien diputuskan.
+
+| **Kode Alasan** | **Deskripsi** | **Penjelasan Detail** |
+|:--:|:--:|:--:|
+| **1** | **Unspecified reason** | Alasan generik dan tidak mencolok untuk pemutusan koneksi. Kode ini digunakan ketika tidak ada alasan spesifik yang dapat diberikan. Ini sering digunakan untuk menghindari deteksi atau untuk memberikan alasan yang tidak mencolok bagi pengguna. |
+| **3** | **Deauthenticated because sending STA is leaving IBSS or ESS** | Kode ini menunjukkan bahwa perangkat (STA) yang mengirimkan paket deauthentication sedang meninggalkan jaringan ad-hoc (IBSS) atau jaringan infrastruktur (ESS). Ini dapat digunakan untuk meniru situasi di mana klien secara sah meninggalkan jaringan, sehingga tidak menimbulkan kecurigaan. |
+| **4** | **Disassociated due to inactivity** | Memutuskan koneksi seolah-olah klien tidak aktif. Kode ini dapat digunakan untuk menguji pengaturan timeout pada perangkat klien, yang mungkin memutuskan koneksi jika tidak ada aktivitas dalam jangka waktu tertentu. |
+| **7** | **Class 3 frame received from nonassociated STA** | Menolak data dari STA yang tidak terasosiasi. Kode ini menunjukkan bahwa perangkat tidak akan menerima data dari perangkat yang tidak terhubung ke jaringan. Ini adalah pengaturan default dalam banyak perangkat untuk menjaga keamanan jaringan. |
+| **8** | **Disassociated because sending STA is leaving BSS** | Meniru situasi di mana perangkat (STA) yang mengirimkan paket deauthentication sedang meninggalkan Basic Service Set (BSS). Ini mirip dengan kode 3, tetapi lebih spesifik untuk jaringan infrastruktur. |
+| **15** | **4-Way Handshake timeout** | Memaksa re-authentication, berguna untuk menangkap handshake WPA/WPA2. Kode ini digunakan untuk memaksa perangkat klien untuk melakukan proses autentikasi ulang, yang dapat digunakan untuk menangkap informasi penting dalam proses handshake. |
 
 ## Contoh ✨
 
@@ -58,8 +73,9 @@ sudo python3 deathpy.py wlan0 -b 00:11:22:33:44:55 -c 6
 Untuk mendeauth client tertentu:
 
 ```
-sudo python3 deathpy.py wlan0 -b 00:11:22:33:44:55 -c 6 -a 66:77:88:99:AA:BB
+usage: sudo python3 deathpy.py [-h] -b BSSID -c CHANNEL [-a CLIENT] [-n COUNT] [-t TIMEOUT] [-i INTERVAL] [-r REASON] [-v] interface
 ```
+
 
 ## Lisensi 📜
 
