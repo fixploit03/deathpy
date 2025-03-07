@@ -50,8 +50,8 @@ def display_intro():
     Display the program banner and information with a 5-second pause after the legal disclaimer.
     """
     # Display banner
-    fig = Figlet(font='standard')  # Using 'standard' font to avoid slant
-    banner = fig.renderText("Deauth Attack")
+    fig = Figlet(font='slant')  # Using 'standard' font to avoid slant
+    banner = fig.renderText("DeathPy")
     print(colored(banner, 'red', attrs=['bold']))
     
     # Program information below banner
