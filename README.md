@@ -55,12 +55,12 @@ Berikut adalah tabel yang menjelaskan kode alasan (reason codes) yang digunakan 
 
 | **Kode Alasan** | **Deskripsi** | **Penjelasan Detail** |
 |:--:|:--:|:--:|
-| **1** | **Unspecified reason** | Alasan generik dan tidak mencolok untuk pemutusan koneksi. Kode ini digunakan ketika tidak ada alasan spesifik yang dapat diberikan. Ini sering digunakan untuk menghindari deteksi atau untuk memberikan alasan yang tidak mencolok bagi pengguna. |
-| **3** | **Deauthenticated because sending STA is leaving IBSS or ESS** | Kode ini menunjukkan bahwa perangkat (STA) yang mengirimkan paket deauthentication sedang meninggalkan jaringan ad-hoc (IBSS) atau jaringan infrastruktur (ESS). Ini dapat digunakan untuk meniru situasi di mana klien secara sah meninggalkan jaringan, sehingga tidak menimbulkan kecurigaan. |
-| **4** | **Disassociated due to inactivity** | Memutuskan koneksi seolah-olah klien tidak aktif. Kode ini dapat digunakan untuk menguji pengaturan timeout pada perangkat klien, yang mungkin memutuskan koneksi jika tidak ada aktivitas dalam jangka waktu tertentu. |
-| **7** | **Class 3 frame received from nonassociated STA** | Menolak data dari STA yang tidak terasosiasi. Kode ini menunjukkan bahwa perangkat tidak akan menerima data dari perangkat yang tidak terhubung ke jaringan. Ini adalah pengaturan default dalam banyak perangkat untuk menjaga keamanan jaringan. |
-| **8** | **Disassociated because sending STA is leaving BSS** | Meniru situasi di mana perangkat (STA) yang mengirimkan paket deauthentication sedang meninggalkan Basic Service Set (BSS). Ini mirip dengan kode 3, tetapi lebih spesifik untuk jaringan infrastruktur. |
-| **15** | **4-Way Handshake timeout** | Memaksa re-authentication, berguna untuk menangkap handshake WPA/WPA2. Kode ini digunakan untuk memaksa perangkat klien untuk melakukan proses autentikasi ulang, yang dapat digunakan untuk menangkap informasi penting dalam proses handshake. |
+| 1 | Unspecified reason | Pemutusan koneksi tanpa alasan spesifik. Kode ini digunakan untuk mengakhiri koneksi tanpa memberikan detail lebih lanjut. Berguna untuk menyamarkan serangan agar terlihat seperti gangguan koneksi alami. |
+| 3 | Deauthenticated because sending STA is leaving IBSS or ESS | Perangkat (STA) yang mengirimkan paket deauthentication dianggap keluar dari jaringan ad-hoc (IBSS) atau infrastruktur (ESS). Cocok untuk skenario di mana klien tampak seperti keluar secara alami. |
+| 4 | Disassociated due to inactivity | Pemutusan koneksi karena dianggap tidak aktif. Kode ini biasa digunakan oleh AP untuk menghemat sumber daya jaringan dengan mengeluarkan klien yang tidak aktif dalam jangka waktu tertentu. Berguna untuk menyamarkan serangan sebagai kebijakan manajemen koneksi. |
+| 7 | Class 3 frame received from nonassociated STA | Perangkat mengirim data tanpa melalui tahap autentikasi dan asosiasi yang benar. Kode ini sering digunakan oleh AP untuk menolak perangkat yang mencoba berkomunikasi tanpa melalui prosedur otentikasi yang sah. Berguna dalam serangan deauthentication karena memastikan klien benar-benar terputus. |
+| 8 | Disassociated because sending STA is leaving BSS | Perangkat tampaknya keluar dari Basic Service Set (BSS). Ini meniru situasi di mana klien pindah ke area lain atau keluar dari jangkauan Wi-Fi. Berguna untuk menyamarkan serangan sebagai pemutusan alami akibat pergerakan perangkat. |
+| 15 | 4-Way Handshake timeout | Klien gagal menyelesaikan proses 4-way handshake dalam autentikasi WPA/WPA2. Ini memaksa perangkat klien untuk melakukan autentikasi ulang, sehingga memungkinkan serangan handshake capture untuk cracking password Wi-Fi. |
 
 ## Contoh ✨
 
