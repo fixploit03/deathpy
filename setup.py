@@ -9,14 +9,16 @@ setup(
     description="WiFi Deauthentication Attack Program",
     author="Rofi (Fixploit03)",
     author_email="fixploit03@gmail.com",
-    url="https://github.com/fixploit03/deathpy",
+    url="https://github.com/fixploit03/deathpy",  
     license="MIT",
 
-    scripts=["src/deathpy"],
+    scripts=["src/deathpy"],  
 
     install_requires=[
         "scapy>=2.4.5",
         "termcolor>=2.4.0",
+        "prettytable>=3.10.0",
+        "pyfiglet>=1.0.2",
     ],
 
     classifiers=[
