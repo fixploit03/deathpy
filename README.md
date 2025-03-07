@@ -8,11 +8,24 @@
 
 ![](https://github.com/fixploit03/deathpy/blob/main/img/deathpy.png)
 
-![](https://github.com/fixploit03/deathpy/blob/main/img/ilustrasi%20serangan%20deauth.jpg)
+<div>
+   <p align="center">
+      | <a href="https://github.com/fixploit03/deathpy#deathpy-">Tentang</a>
+      | <a href="https://github.com/fixploit03/deathpy/blob/main/INSTALL">Instalasi</a>
+      | <a href="https://github.com/fixploit03/deathpy#penggunaan-">Penggunaan</a>
+      | <a href="https://github.com/fixploit03/deathpy/blob/main/LICENSE">Lisensi</a> |
+   </p>
+</div>
 
 `DeathPy` adalah program berbasis Python yang dirancang untuk tujuan pendidikan guna menunjukkan cara kerja serangan deautentikasi pada jaringan nirkabel (Wi-Fi). Program ini dibuat untuk digunakan dalam lingkungan yang terkontrol, seperti laboratorium keamanan siber atau pengujian penetrasi yang sah. Anda hanya boleh menggunakannya pada jaringan atau perangkat yang Anda miliki atau telah mendapatkan izin eksplisit dari pemiliknya untuk menguji keamanannya.
 
 > :warning: **Disclaimer**: Program ini dibuat hanya untuk keperluan belajar dan pendidikan. Menggunakannya untuk tujuan ilegal, seperti mengganggu, menyusup, atau merusak jaringan tanpa izin, adalah melanggar hukum di banyak wilayah dan dapat menyebabkan konsekuensi hukum serius, termasuk denda atau penjara. Pembuat **(Rofi/Fixploit03)** tidak bertanggung jawab atas penyalahgunaan atau kerusakan yang disebabkan oleh program ini. Tanggung jawab penuh ada pada pengguna untuk mematuhi hukum dan peraturan yang berlaku di wilayah Anda.
+
+## Ilustrasi
+
+Berikut ini adalah ilustrasi yang menunjukkan seorang penyerang (Attacker) mengirimkan Frame Deauthentication ke Access Point (AP), yang berfungsi sebagai perangkat untuk mendistribusikan koneksi internet. Dalam ilustrasi ini, AP menerima Frame Deauthentication, sehingga kemampuannya untuk menyebarkan koneksi internet terganggu dan tidak dapat berfungsi dengan normal. Akibatnya, perangkat seperti kamera CCTV, smartphone, dan kedua laptop kehilangan akses ke internet, sebagaimana ditandai dengan simbol "Disconnect" pada ilustrasi, yang menunjukkan dampak langsung dari serangan deautentikasi yang dilakukan oleh penyerang.
+
+![](https://github.com/fixploit03/deathpy/blob/main/img/ilustrasi%20serangan%20deauth.jpg)
 
 ## Persyaratan 📦
 
